@@ -1,0 +1,16 @@
+{
+  "name": "exemplobaileys",
+  "version": "1.0.0",
+  "description": "Exemplo de conecção da biblioteca whiskeysockets/baileys",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.7.2",
+    "qrcode-terminal": "^0.12.0"
+  }
+}
