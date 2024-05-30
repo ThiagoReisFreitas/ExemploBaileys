@@ -1,32 +1,40 @@
-const { DisconnectReason, useMultiFileAuthState, BufferJSON } = require("@whiskeysockets/baileys");
+const { DisconnectReason, useMultiFileAuthState, BufferJSON, makeInMemoryStore, default: makeWaSocket, Browsers } = require("@whiskeysockets/baileys");
 
-const makeWaSocket = require("@whiskeysockets/baileys").default;
+const MAX_RECONNECT = 3;
+let reconnectAttempts = 0;
+async function connectionWA() {
 
-async function connection() {
-    
     //utiliza arquivos para autentição e armazenamento de credenciais
     const { state, saveCreds } = await useMultiFileAuthState('auth_info_baileys');
 
     const sock = makeWaSocket({
+        version: [2, 2413, 1],
+        auth: state,
         printQRInTerminal: true,
-        auth: state
+        syncFullHistory: false,
+        defaultQueryTimeoutMs: undefined,
     });
-    
-    
+
+
     //Lida com conecções e desconecções
     sock.ev.on("connection.update", async (update) => {
         const { connection, lastDisconnect, qr } = update;
-        
+
         if (qr) {
             console.log(qr);
         }
         if (connection === "close") {
             const shouldReconnect = lastDisconnect?.error?.output?.statusCode !==
-            DisconnectReason.loggedOut;
-            
-            if (shouldReconnect) {
-                connection();
+                DisconnectReason.loggedOut;
+
+            if (shouldReconnect && reconnectAttempts < MAX_RECONNECT) {
+                reconnectAttempts++;
+                console.log("Tentativa "+reconnectAttempts);
+                await reconnect()
             }
+        }
+        else if(connection === "open") {
+            reconnectAttempts = 0;
         }
     });
 
@@ -36,4 +44,9 @@ async function connection() {
     return sock;
 };
 
-module.exports = connection;  
+async function reconnect() {
+    console.log("tentando reconectar...");
+    await connectionWA();
+}
+
+module.exports = connectionWA;  
